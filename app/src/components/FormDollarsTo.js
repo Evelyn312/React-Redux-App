@@ -18,31 +18,40 @@ const currencyNameCode = [
 const FormDollarsTo = (props) => {
 
     const [dollarAmount, setDollarAmount] = useState('');
-    const [code, setCode] = useState('');
+    const [selectedCode, setSelectedCode] = useState('');
+    const [selectedCountry, setSelectedCountry] = useState('');
+    const [result, setResult] = useState('');
 
     const handleChanges = e => {
         e.preventDefault();
-        console.log(" dollar enter", e.target.value)
         setDollarAmount(e.target.value);
     };
     
     const updatingCode = e => {
-        e.preventDefault();
+      
         console.log("code selected", e.target.value)
-        setCode(e.target.value)
+        setSelectedCode(e.target.value)
+        // const curName = currencyNameCode.find(o => o.currencyCode === e.target.value);
+        // setSelectedCountry(curName.currencyName)
+
     }
     
     const submitHandler = e => {
         e.preventDefault();
-        props.dollarToSubmit(dollarAmount, code)
+        props.dollarToSubmit(dollarAmount, selectedCode)
+        convertFromDollar(dollarAmount, props.apiData,selectedCode)
+        const curName = currencyNameCode.find(o => o.currencyCode === selectedCode);
+        setSelectedCountry(curName.currencyName)
     }
 
     useEffect(() => {
         props.getExchangeRate();
     },[])
 
-    const dollarToConv = () => {
-        console.log("rate", props.apiData.rate)
+    const convertFromDollar = (dollarAmount,rate,selectedCode) => {
+
+        const trueRate = rate.rates ? rate.rates[selectedCode]: null
+        setResult(dollarAmount * trueRate);
     }
 
     return(
@@ -66,11 +75,13 @@ const FormDollarsTo = (props) => {
                         id = "currencyCode" 
                         name = "currencyCode" 
                         onChange = {updatingCode}
-                        value={code}
+                        value={selectedCode}
+                    
                     >
                         <option value="" >Please Select A Country</option>
                         {
                             currencyNameCode.map((code, key) => {
+
                                 return(
                                 <option value = {code.currencyCode} key = {key}>{code.countryName} Money</option>
                                 )
@@ -89,14 +100,15 @@ const FormDollarsTo = (props) => {
                          width={100}
             />}
             <div>
-                    <p>${dollarAmount} dollars is {dollarToConv()}  </p>
+            <p>${dollarAmount} dollars is {result} for {selectedCountry}</p>
             </div>
         </>
     )
 };
 const mapStateToProps = state => {
     return{
-        apiData: state.apiData.rate
+        apiData: state.apiData,
+        isFetching: state.isFetching
     }
 }
 
